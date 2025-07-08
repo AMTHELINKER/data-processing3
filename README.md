@@ -176,4 +176,4 @@ Ce projet est sous licence MIT. Voir le fichier `LICENSE` pour plus de détails.
 
 ## 👥 Équipe
 
-Développé dans le cadre du projet Sacala DIC2 pour l'automatisation du traitement de données.
+Développé dans le cadre du projet Scala DIC2 pour l'automatisation du traitement de données.
