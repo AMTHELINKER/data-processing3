@@ -20,7 +20,7 @@ L'API automatise les tâches suivantes de Data Processing :
 
 ### Frontend (React + TypeScript)
 - **Framework**: React 18 avec TypeScript
-- **Styling**: Tailwind CSS
+- **Styling**: Boostrap 5.3.7
 - **Icons**: Lucide React
 - **Build Tool**: Vite
 
