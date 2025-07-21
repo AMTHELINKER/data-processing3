@@ -38,6 +38,30 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result, onReset, onChec
     );
   }
 
+  if (!result.statistics) {
+    return (
+      <div className="card border-0 shadow-sm">
+        <div className="card-body p-4 p-lg-5 text-center">
+          <div className="bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style={{width: '64px', height: '64px'}}>
+            <AlertCircle size={32} className="text-danger" />
+          </div>
+          <h2 className="h3 fw-bold mb-2">Erreur de résultat</h2>
+          <p className="text-muted mb-4">Aucune statistique n'a été retournée par le backend. Le format du fichier ou la réponse est invalide.</p>
+          <pre className="bg-light text-start p-2 rounded small mb-3" style={{maxHeight: 200, overflowY: 'auto'}}>
+            {JSON.stringify(result, null, 2)}
+          </pre>
+          <button
+            onClick={onReset}
+            className="btn btn-primary d-inline-flex align-items-center gap-2"
+          >
+            <RefreshCw size={20} />
+            <span>Réessayer</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="d-flex flex-column gap-4">
       {/* Success Header */}

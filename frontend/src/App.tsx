@@ -33,6 +33,8 @@ function App() {
 
     try {
       // Appel réel à l'API Scala
+      const ext = file.name.split('.').pop()?.toLowerCase();
+      const fileType = ext === 'json' ? 'json_flat' : ext;
       const response = await fetch('http://localhost:8080/api/process', {
         method: 'POST',
         headers: {
@@ -40,7 +42,7 @@ function App() {
         },
         body: JSON.stringify({
           fileName: file.name,
-          fileType: file.name.split('.').pop(),
+          fileType: fileType,
           data: await file.text()
         })
       });

@@ -14,6 +14,7 @@ class FileProcessingService extends LazyLogging {
     fileType.toLowerCase match {
       case "csv" => parseCsv(content)
       case "json" => parseJson(content)
+      case "json_flat" => parseJsonFlat(content)
       case "xml" => parseXml(content)
       case _ => Failure(new IllegalArgumentException(s"Unsupported file type: $fileType"))
     }
@@ -70,6 +71,65 @@ class FileProcessingService extends LazyLogging {
           elem.label -> elem.text
         }.toMap)
       }
+    }
+  }
+
+  // Nouvelle méthode pour aplatir les objets JSON imbriqués
+  private def parseJsonFlat(content: String): Try[List[Map[String, String]]] = {
+    def tryParseStandardJson(): Try[List[Map[String, String]]] = Try {
+      val json = content.parseJson
+      val result = json match {
+        case JsArray(elements) =>
+          elements.map(flattenJsValue(_)).toList
+        case JsObject(_) =>
+          List(flattenJsValue(json))
+        case _ => throw new IllegalArgumentException("JSON must be an object or array of objects")
+      }
+      if (result.isEmpty || result.forall(_.isEmpty)) {
+        throw new IllegalArgumentException("Aucune donnée exploitable dans le fichier JSON (après aplatissement)")
+      }
+      result
+    }
+
+    def tryParseNdjson(): Try[List[Map[String, String]]] = Try {
+      val lines = content.split("\r?\n").map(_.trim).filter(_.nonEmpty)
+      val objects = lines.flatMap { line =>
+        try {
+          val js = line.parseJson
+          js match {
+            case obj: JsObject => Some(flattenJsValue(obj))
+            case _ => None
+          }
+        } catch {
+          case _: Exception => None
+        }
+      }.toList
+      if (objects.isEmpty) throw new IllegalArgumentException("Aucune donnée exploitable dans le fichier JSON (ni format standard, ni NDJSON)")
+      objects
+    }
+
+    tryParseStandardJson() match {
+      case Success(res) => Success(res)
+      case Failure(_) => tryParseNdjson()
+    }
+  }
+
+  // Fonction utilitaire pour aplatir récursivement un JsValue
+  private def flattenJsValue(jsValue: JsValue, prefix: String = ""): Map[String, String] = {
+    jsValue match {
+      case JsObject(fields) =>
+        fields.flatMap { case (key, value) =>
+          val newPrefix = if (prefix.isEmpty) key else s"${prefix}_$key"
+          flattenJsValue(value, newPrefix)
+        }.toMap
+      case JsArray(values) =>
+        // On convertit le tableau en string JSON pour garder l'information
+        Map(prefix -> values.map(_.compactPrint).mkString("[", ",", "]"))
+      case JsString(s) => Map(prefix -> s)
+      case JsNumber(n) => Map(prefix -> n.toString)
+      case JsBoolean(b) => Map(prefix -> b.toString)
+      case JsNull => Map(prefix -> "")
+      case _ => Map(prefix -> jsValue.toString)
     }
   }
 
