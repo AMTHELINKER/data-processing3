@@ -38,5 +38,12 @@ lazy val root = (project in file("."))
       "org.scalatest" %% "scalatest" % "3.2.17" % Test,
       "com.typesafe.akka" %% "akka-http-testkit" % "10.5.3" % Test,
       "com.typesafe.akka" %% "akka-testkit" % "2.8.5" % Test
-    )
+    ),
+    assembly / assemblyMergeStrategy := {
+      case PathList("META-INF", _*) => MergeStrategy.discard
+      case "module-info.class" => MergeStrategy.discard
+      case x =>
+        val oldStrategy = (assembly / assemblyMergeStrategy).value
+        oldStrategy(x)
+    }
   )
