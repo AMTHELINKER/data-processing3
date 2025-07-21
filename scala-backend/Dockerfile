@@ -1,5 +1,5 @@
 # Étape 1 : Build SBT
-FROM hseeberger/scala-sbt:11.0.19_1.9.6_2.13 as builder
+FROM hseeberger/scala-sbt:11.0.19_1.9.6_2.13.10 as builder
 
 WORKDIR /app
 COPY . .
