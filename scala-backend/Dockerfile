@@ -1,19 +1,26 @@
-# Étape 1 : Build SBT
-FROM hseeberger/scala-sbt:11.0.19_1.9.6_2.13.10 as builder
+# Étape 1 : Build avec SBT installé manuellement
+FROM openjdk:11-jdk-slim as builder
+
+# Installer SBT et Scala
+RUN apt-get update && \
+    apt-get install -y curl gnupg && \
+    echo "deb https://repo.scala-sbt.org/scalasbt/debian all main" | tee /etc/apt/sources.list.d/sbt.list && \
+    curl -sL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x99E82A75642AC823" | apt-key add && \
+    apt-get update && \
+    apt-get install -y sbt scala
 
 WORKDIR /app
 COPY . .
+
+# Générer un fat JAR (nécessite sbt-assembly dans plugins.sbt)
 RUN sbt clean assembly
 
 # Étape 2 : Image d'exécution légère
 FROM eclipse-temurin:11-jre
 WORKDIR /app
 
-# Copier le JAR généré
-COPY --from=builder /app/target/scala-2.13/data-processing-api-assembly-0.1.0-SNAPSHOT.jar /app/app.jar
+COPY --from=builder /app/target/scala-2.13/*.jar /app/app.jar
 
-# Exposer le port de l'API
 EXPOSE 8080
 
-# Commande de lancement
-CMD ["java", "-jar", "/app/app.jar"] 
+CMD ["java", "-jar", "/app/app.jar"]
